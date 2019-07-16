@@ -29,14 +29,15 @@ public class Main extends Application {
     private static Random rand = new Random();
     private static List<Block> snekList = new ArrayList<>();
     private static Direction direction = Direction.RIGHT;
-    private static boolean gameOver = false;
+    private static boolean gameOver = false,
+            paused = true;
 
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
         VBox vBox = new VBox();
         Canvas canvas = new Canvas(canvasWidth, canvasHeight);
         GraphicsContext graphicsContext = canvas.getGraphicsContext2D();
@@ -53,12 +54,15 @@ public class Main extends Application {
 
             @Override
             public void handle(long now) {
+                if (paused) {
+                    showControls(graphicsContext);
+                }
                 double elapsedTime = (now - lastFrame) / 1_000_000_000.0;
                 if (lastFrame == 0) {
                     lastFrame = now;
                     return;
                 }
-                if (elapsedTime > speed) {
+                if (elapsedTime > speed && !paused) {
                     lastFrame = now;
                     frame(graphicsContext);
                 }
@@ -68,39 +72,62 @@ public class Main extends Application {
     }
 
     private void frame(GraphicsContext graphicsContext) {
+        graphicsContext.setTextAlign(TextAlignment.CENTER);
         if (gameOver) {
-            graphicsContext.setFill(Color.RED);
-            graphicsContext.setFont(new Font("", 50));
-            graphicsContext.setTextAlign(TextAlignment.CENTER);
-            graphicsContext.fillText("GAME OVER", canvasWidth / 2, canvasHeight / 2);
+            showGameOver(graphicsContext);
             return;
         }
         graphicsContext.setFill(Color.BLACK);
         graphicsContext.fillRect(0, 0, canvasWidth, canvasHeight);
+        showScore(graphicsContext);
         showFood(graphicsContext);
         moveSnek();
         showSnek(graphicsContext);
         eatFood();
         checkIfSnekEatsSnek();
-        System.out.println(gameOver);
+    }
+
+    private void showControls(GraphicsContext graphicsContext) {
+        graphicsContext.setFill(Color.WHITE);
+        graphicsContext.setFont(new Font("", 15));
+        graphicsContext.fillText("WASD to Move - SPACE to Pause", canvasWidth / 2, canvasHeight / 3 * 2);
+    }
+
+
+    private void showGameOver(GraphicsContext graphicsContext) {
+        graphicsContext.setFill(Color.RED);
+        graphicsContext.setFont(new Font("", 50));
+        graphicsContext.fillText("GAME OVER", canvasWidth / 2, canvasHeight / 2);
     }
 
     private void setKeyEvents(Scene scene) {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, key -> {
             if (key.getCode() == KeyCode.W) {
-                direction = Direction.UP;
+                if (direction != Direction.DOWN && !paused) {
+                    direction = Direction.UP;
+                }
+            } else if (key.getCode() == KeyCode.A) {
+                if (direction != Direction.RIGHT && !paused) {
+                    direction = Direction.LEFT;
+                }
+            } else if (key.getCode() == KeyCode.S) {
+                if (direction != Direction.UP && !paused) {
+                    direction = Direction.DOWN;
+                }
+            } else if (key.getCode() == KeyCode.D) {
+                if (direction != Direction.LEFT && !paused) {
+                    direction = Direction.RIGHT;
+                }
+            } else if (key.getCode() == KeyCode.SPACE) {
+                paused = !paused;
             }
-            if (key.getCode() == KeyCode.A) {
-                direction = Direction.LEFT;
-            }
-            if (key.getCode() == KeyCode.S) {
-                direction = Direction.DOWN;
-            }
-            if (key.getCode() == KeyCode.D) {
-                direction = Direction.RIGHT;
-            }
-
         });
+    }
+
+    private void showScore(GraphicsContext graphicsContext) {
+        graphicsContext.setFill(Color.WHITE);
+        graphicsContext.setFont(new Font("", 30));
+        graphicsContext.fillText("Score: " + (snekList.size() - 4), canvasWidth / 2, 30);
     }
 
     private void eatFood() {
@@ -152,8 +179,9 @@ public class Main extends Application {
     }
 
     private void createFood() {
-        boolean isInSnek = false;
+        boolean isInSnek;
         do {
+            isInSnek = false;
             foodX = rand.nextInt(amountWidth);
             foodY = rand.nextInt(amountHeight);
             for (Block block : snekList) {
@@ -187,7 +215,7 @@ public class Main extends Application {
             graphicsContext.setFill(Color.LIGHTGREY);
             graphicsContext.fillRect(xCoord, yCoord, blockWidth, blockHeight);
             graphicsContext.setFill(Color.GREY);
-            graphicsContext.fillRect(xCoord - 1, yCoord - 1, blockWidth - 1, blockHeight - 1);
+            graphicsContext.fillRect(xCoord - 2, yCoord - 2, blockWidth - 2, blockHeight - 2);
         }
     }
 }
