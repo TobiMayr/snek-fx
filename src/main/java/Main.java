@@ -79,12 +79,24 @@ public class Main extends Application {
         }
         graphicsContext.setFill(Color.BLACK);
         graphicsContext.fillRect(0, 0, canvasWidth, canvasHeight);
-        showScore(graphicsContext);
+        showGrid(graphicsContext);
         showFood(graphicsContext);
         moveSnek();
         showSnek(graphicsContext);
         eatFood();
         checkIfSnekEatsSnek();
+        showScore(graphicsContext);
+    }
+
+    private void showGrid(GraphicsContext graphicsContext) {
+        graphicsContext.setStroke(Color.DARKGRAY);
+        graphicsContext.setLineWidth(0.1);
+        for (int i = 0; i < amountWidth; i++) {
+            graphicsContext.strokeLine(i * blockWidth, 0, i * blockWidth, canvasHeight);
+        }
+        for (int i = 0; i < amountHeight; i++) {
+            graphicsContext.strokeLine(0, i * blockHeight, canvasWidth, i * blockHeight);
+        }
     }
 
     private void showControls(GraphicsContext graphicsContext) {
